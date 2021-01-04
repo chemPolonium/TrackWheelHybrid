@@ -1,0 +1,9 @@
+tgal = linspace(0,0.5,100);
+cal = 9e4;
+mu = 0.55;
+eta = 0.7;
+fz = 1e4;
+fy1 = -cal*tgal + cal^2/(3*eta*mu*fz)*tgal.^2 - cal^3/(27*eta^2*mu^2*fz^2)*tgal.^3;
+fy2 = -eta*mu*fz;
+tgal1 = 3*eta*mu*fz/cal;
+plot(tgal,[fy1(tgal<tgal1) fy2+zeros(1,sum(tgal>=tgal1))]);
