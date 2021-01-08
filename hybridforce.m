@@ -91,13 +91,24 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
         
     end
 
-    function tireforce
+    function Fy = tireforce(alpha,Fx)
         % 轮胎受力
         % 采用附着椭圆，fiala模型
         % tire forces
         % using fiala model, which uses a 3rd order tylor expansion to fit the
         % force of a tire.
-        
+        mu = 0.55;
+        Ca = 9e4;
+        Fz = 1e3;
+        eta = sqrt(mu^2*Fz^2-Fx^2)/mu/Fz;
+        asl = atan(3*eta*mu*Fz/Ca);
+        if abs(alpha) < asl
+            Fy = -Ca*tan(alpha)+...
+                Ca^2/(3*eta*mu*Fz)*abs(tan(alpha))*tan(alpha)-...
+                Ca^3/(27*eta^2*mu^2*Fz^2)*tan(alpha)^3;
+        else
+            Fy = -eta*mu*Fz*sign(alpha);
+        end
     end
 
 end
