@@ -5,7 +5,9 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
 
 [Fxo,Fyo,MLo,Mro,Fxi,Fyi,MLi,Mri] = trackedforce;
 
-    function [Fxo,Fyo,MLo,Mro,Fxi,Fyi,MLi,Mri] = trackedforce
+
+
+    function [Fxr,Fyr,MLr,Mrr,Fxl,Fyl,MLl,Mrl] = trackedforce
         
         % using the coordinate system in Wong's book.
         % where the heading direction is y,
@@ -15,8 +17,8 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
         % 履带受力
         % Rx = 10; % R''
         B = 3; % 两条履带中心线之间的距离
-        cx = 0; % X方向（车辆横向）上质心到几何中心距离
-        cy = 0.1; % Y方向（车辆纵向）上质心到几何中心距离
+        cx = 0; % X方向（车辆横向lateral）上质心到几何中心距离，质心在几何中心左时为正
+        cy = 0.1; % Y方向（车辆纵向longitudinal）上质心到几何中心距离，质心在几何中心右时为正
         l = 2; % 履带长度
         % so = 0.5; % Y方向（车辆纵向）上质心到旋转中心距离
         omegaz = 0.1; % 车身旋转速度
@@ -72,15 +74,15 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
         
         duotrapz = @(d) trapz(x1,trapz(y1,d));
         
-        Fxo = duotrapz(dFxo);
-        Fyo = duotrapz(dFyo);
-        MLo = duotrapz(dMLo);
-        Mro = duotrapz(dMro);
+        Fxr = duotrapz(dFxo);
+        Fyr = duotrapz(dFyo);
+        MLr = duotrapz(dMLo);
+        Mrr = duotrapz(dMro);
         
-        Fxi = duotrapz(dFxi);
-        Fyi = duotrapz(dFyi);
-        MLi = duotrapz(dMLi);
-        Mri = duotrapz(dMri);
+        Fxl = duotrapz(dFxi);
+        Fyl = duotrapz(dFyi);
+        MLl = duotrapz(dMLi);
+        Mrl = duotrapz(dMri);
         
         % 需要使用内置积分器时，创建这样一个函数
         % dFxo = getdFxo(x1,y1);
@@ -91,7 +93,7 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
         
     end
 
-    function Fy = tireforce(alpha,Fx)
+    function Fy = fialatireforce(talpha,Fx)
         % 轮胎受力
         % 采用附着椭圆，fiala模型
         % tire forces
@@ -101,14 +103,23 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
         Ca = 9e4;
         Fz = 1e3;
         eta = sqrt(mu^2*Fz^2-Fx^2)/mu/Fz;
-        asl = atan(3*eta*mu*Fz/Ca);
-        if abs(alpha) < asl
-            Fy = -Ca*tan(alpha)+...
-                Ca^2/(3*eta*mu*Fz)*abs(tan(alpha))*tan(alpha)-...
-                Ca^3/(27*eta^2*mu^2*Fz^2)*tan(alpha)^3;
+        tasl = 3*eta*mu*Fz/Ca;
+        if abs(talpha) < tasl
+            Fy = -Ca*talpha+...
+                Ca^2/(3*eta*mu*Fz)*abs(talpha)*talpha-...
+                Ca^3/(27*eta^2*mu^2*Fz^2)*talpha^3;
         else
-            Fy = -eta*mu*Fz*sign(alpha);
+            Fy = -eta*mu*Fz*sign(talpha);
         end
+    end
+
+    function [Fx,Fy,Mz] = tireforce(l,delta,FxTire)
+        % delta: steer angle
+        talpha = (vy+omegaz*l)/vx;
+        FyTire = tireforce(talpha,FxTire);
+        Fx = FxTire*cos(delta)-FyTire*sin(delta);
+        Fy = FyTire*cos(delta)+FxTire*sin(delta);
+        Mz = cx*Fx+l*Fy;
     end
 
 end
