@@ -1,13 +1,19 @@
-function hybridforce(vx,vy,omegaz,fx1,fx2)
+function [Fx,Fy,Mz] = hybridforce(vx,vy,omegaz,fx1,fx2,steer1,steer2)
 % HYBRIDFORCE  Get the total force of the track-tire hybrid vehicle.
 %   HYBRID(vx,vy,omegaz,fx1,fx2)
 %   the hybrid force can calculate the force of the tracks and tires.
 
-[Fxo,Fyo,MLo,Mro,Fxi,Fyi,MLi,Mri] = trackedforce;
+cx = 0; % X方向（车辆横向lateral）上质心到几何中心距离，质心在几何中心左时为正
+cy = 0; % Y方向（车辆纵向longitudinal）上质心到几何中心距离，质心在几何中心右时为正
 
+[Fxr,Fyr,MLr,Mrr,Fxl,Fyl,MLl,Mrl] = trackedforce;
+[Ftfx,Ftfy,Mztf,Ftrx,Ftry,Mztr] = tireforce;
 
+Fx = Fxr+Fxl+Ftfx+Ftrx;
+Fy = Fyr+Fyl+Ftfy+Ftry;
+Mz = MLr+Mrr+MLl+Mrl+Mztf+Mztr;
 
-    function [Fxr,Fyr,MLr,Mrr,Fxl,Fyl,MLl,Mrl] = trackedforce
+    function [Fxl,Fyl,MLl,Mrl,Fxr,Fyr,MLr,Mrr] = trackedforce
         
         % using the coordinate system in Wong's book.
         % where the heading direction is y,
@@ -17,8 +23,6 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
         % 履带受力
         % Rx = 10; % R''
         B = 3; % 两条履带中心线之间的距离
-        cx = 0; % X方向（车辆横向lateral）上质心到几何中心距离，质心在几何中心左时为正
-        cy = 0.1; % Y方向（车辆纵向longitudinal）上质心到几何中心距离，质心在几何中心右时为正
         l = 2; % 履带长度
         % so = 0.5; % Y方向（车辆纵向）上质心到旋转中心距离
         omegaz = 0.1; % 车身旋转速度
@@ -40,49 +44,56 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
         x2 = linspace(-b/2,b/2,10);
         y2 = linspace(-l/2-(so-cy),l/2-(so-cy),50)';
         
-        jxo = (Rx+B/2+cx+x1).*(cos((l/2+cy-so-y1)*omegaz/r/omegao)-1)-y1.*sin((l/2+cy-so-y1)*omegaz/r/omegao);
-        jyo = (Rx+B/2+cx+x1).*sin((l/2+cy-so-y1)*omegaz/r/omegao)-(l/2+cy-so)+y1.*cos((l/2+cy-so-y1)*omegaz/r/omegao);
-        jo = hypot(jxo,jyo);
+        jxr = (Rx+B/2+cx+x1).*(cos((l/2+cy-so-y1)*omegaz/r/omegao)-1)-y1.*sin((l/2+cy-so-y1)*omegaz/r/omegao);
+        jyr = (Rx+B/2+cx+x1).*sin((l/2+cy-so-y1)*omegaz/r/omegao)-(l/2+cy-so)+y1.*cos((l/2+cy-so-y1)*omegaz/r/omegao);
+        jr = hypot(jxr,jyr);
         
-        vjyo = (Rx+B/2+cx+x1)*omegaz-r*omegao;
-        vjxo = -y1*omegaz;
-        vjo = hypot(jxo,jyo);
+        vjyr = (Rx+B/2+cx+x1)*omegaz-r*omegao;
+        vjxr = -y1*omegaz;
         
-        sindelta1 = vjyo./vjo;
-        cosdelta1 = vjxo./vjo;
+        % vjr = hypot(jxr,jyr);
+        % sindeltar = vjyr./vjr;
+        % cosdeltar = vjxr./vjr;
         
-        dFxo = -sigmao*mu*(1-exp(-jo/K)).*cosdelta1;
-        dFyo = -sigmao*mu*(1-exp(-jo/K)).*sindelta1;
-        dMLo = -(B/2+x1)*sigmao*mu.*(1-exp(-jo/K)).*sindelta1;
-        dMro = -y1*sigmao*mu.*(1-exp(-jo/K)).*cosdelta1;
+        deltar = atan2(vjyr,vjxr);
+        sindeltar = sin(deltar);
+        cosdeltar = cos(deltar);
         
-        jxi = (Rx-B/2+cx+x2).*(cos((l/2+cy-so-y2)*omegaz/r/omegai)-1)-y2.*sin((l/2+cy-so-y2)*omegaz/r/omegai);
-        jyi = (Rx-B/2+cx+x2).*sin((l/2+cy-so-y2)*omegaz/r/omegai)-(l/2+cy-so)+y2.*cos((l/2+cy-so-y2)*omegaz/r/omegai);
-        ji = hypot(jxi,jyi);
+        dFxr = -sigmao*mu*(1-exp(-jr/K)).*cosdeltar;
+        dFyr = -sigmao*mu*(1-exp(-jr/K)).*sindeltar;
+        dMLr = -(B/2+x1)*sigmao*mu.*(1-exp(-jr/K)).*sindeltar;
+        dMrr = -y1*sigmao*mu.*(1-exp(-jr/K)).*cosdeltar;
         
-        vjyi = (Rx-B/2+cx+x2)*omegaz-r*omegai;
-        vjxi = -y2*omegaz;
-        vji = hypot(jxi,jyi);
+        jxl = (Rx-B/2+cx+x2).*(cos((l/2+cy-so-y2)*omegaz/r/omegai)-1)-y2.*sin((l/2+cy-so-y2)*omegaz/r/omegai);
+        jyl = (Rx-B/2+cx+x2).*sin((l/2+cy-so-y2)*omegaz/r/omegai)-(l/2+cy-so)+y2.*cos((l/2+cy-so-y2)*omegaz/r/omegai);
+        jl = hypot(jxl,jyl);
         
-        sindelta2 = vjyi./vji;
-        cosdelta2 = vjxi./vji;
+        vjyl = (Rx-B/2+cx+x2)*omegaz-r*omegai;
+        vjxl = -y2*omegaz;
         
-        dFxi = -sigmai*mu*(1-exp(-ji/K)).*cosdelta2;
-        dFyi = -sigmai*mu*(1-exp(-ji/K)).*sindelta2;
-        dMLi = -(B/2-x2)*sigmai*mu.*(1-exp(-ji/K)).*sindelta2;
-        dMri = -y2*sigmai*mu.*(1-exp(-ji/K)).*cosdelta2;
+        deltal = atan2(vjyl,vjxl);
+        sindeltal = sin(deltal);
+        cosdeltal = cos(deltal);
+        % vjl = hypot(jxl,jyl);
+        % sindelta2 = vjyl./vjl;
+        % cosdelta2 = vjxl./vjl;
+        
+        dFxl = -sigmai*mu*(1-exp(-jl/K)).*cosdeltal;
+        dFyl = -sigmai*mu*(1-exp(-jl/K)).*sindeltal;
+        dMLl = -(B/2-x2)*sigmai*mu.*(1-exp(-jl/K)).*sindeltal;
+        dMrl = -y2*sigmai*mu.*(1-exp(-jl/K)).*cosdeltal;
         
         duotrapz = @(d) trapz(x1,trapz(y1,d));
         
-        Fxr = duotrapz(dFxo);
-        Fyr = duotrapz(dFyo);
-        MLr = duotrapz(dMLo);
-        Mrr = duotrapz(dMro);
+        Fxr = duotrapz(dFxr);
+        Fyr = duotrapz(dFyr);
+        MLr = duotrapz(dMLr);
+        Mrr = duotrapz(dMrr);
         
-        Fxl = duotrapz(dFxi);
-        Fyl = duotrapz(dFyi);
-        MLl = duotrapz(dMLi);
-        Mrl = duotrapz(dMri);
+        Fxl = duotrapz(dFxl);
+        Fyl = duotrapz(dFyl);
+        MLl = duotrapz(dMLl);
+        Mrl = duotrapz(dMrl);
         
         % 需要使用内置积分器时，创建这样一个函数
         % dFxo = getdFxo(x1,y1);
@@ -113,13 +124,20 @@ function hybridforce(vx,vy,omegaz,fx1,fx2)
         end
     end
 
-    function [Fx,Fy,Mz] = tireforce(l,delta,FxTire)
+    function [Fx,Fy,Mz] = singletireforce(l,delta,FxTire)
         % delta: steer angle
         talpha = (vy+omegaz*l)/vx;
-        FyTire = tireforce(talpha,FxTire);
+        FyTire = fialatireforce(talpha,FxTire);
         Fx = FxTire*cos(delta)-FyTire*sin(delta);
         Fy = FyTire*cos(delta)+FxTire*sin(delta);
         Mz = cx*Fx+l*Fy;
+    end
+
+    function [Ftfx,Ftfy,Mztf,Ftrx,Ftry,Mztr] = tireforce
+        l1 = 1.3; % 前轮到几何中心的距离
+        l2 = 1.3; % 后轮到几何中心的距离
+        [Ftfx,Ftfy,Mztf] = singletireforce(l1+cy,steer1,fx1);
+        [Ftrx,Ftry,Mztr] = singletireforce(-l2+cy,steer2,fx2);
     end
 
 end
