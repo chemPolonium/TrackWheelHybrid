@@ -4,8 +4,8 @@ function [Fx,Fy,Mz] = hybridforce(vx,vy,omegaz,omegal,omegar,fx1,fx2,steer1,stee
 %   the hybrid force can calculate the force of the tracks and tires.
 
 % omegaz 车身旋转速度
-% omegar 外侧履带轮转动速度
-% omegal 内测履带轮转动速度
+% omegar 右侧履带轮转动速度
+% omegal 左测履带轮转动速度
 % fx1 前轮驱动力
 % fx2 后轮驱动力
 % steer1 前轮转角
