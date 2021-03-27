@@ -14,12 +14,22 @@ function [Fx,Fy,Mz] = hybridforce(vx,vy,omegaz,omegal,omegar,fx1,fx2,steer1,stee
 cx = 0; % X方向（车辆横向lateral）上质心到几何中心距离，质心在几何中心左时为正
 cy = 0; % Y方向（车辆纵向longitudinal）上质心到几何中心距离，质心在几何中心右时为正
 
+m = 3e3; % 车身质量
+
 [Fxl,Fyl,MLl,Mrl,Fxr,Fyr,MLr,Mrr] = trackedforce;
-[Ftfx,Ftfy,Mztf,Ftrx,Ftry,Mztr] = tireforce;
+if nargin < 6
+    [Ftfx,Ftfy,Mztf,Ftrx,Ftry,Mztr] = deal(0);
+else
+    [Ftfx,Ftfy,Mztf,Ftrx,Ftry,Mztr] = tireforce;
+end
 
 Fx = Fxl+Fxr+Ftfx+Ftrx;
 Fy = Fyl+Fyr+Ftfy+Ftry;
 Mz = MLl+Mrl+MLr+Mrr+Mztf+Mztr;
+
+if nargout <= 1
+    Fx = [Fx Fy Mz];
+end
 
     function [Fxl,Fyl,MLl,Mrl,Fxr,Fyr,MLr,Mrr] = trackedforcegeocord
         
@@ -36,8 +46,8 @@ Mz = MLl+Mrl+MLr+Mrr+Mztf+Mztr;
         % so = 0.5; % Y方向（车辆纵向）上质心到旋转中心距离
         r = 0.3; % 履带轮半径
         b = 0.3; % 履带宽度
-        sigmar = 1; % 右侧履带法向压力（压强）
-        sigmal = 1; % 左侧履带法向压力（压强）
+        sigmar = m/(2*l*b); % 右侧履带法向压力（压强）
+        sigmal = m/(2*l*b); % 左侧履带法向压力（压强）
         mu = 0.5; % 履带和地面的摩擦系数
         K = 0.2;
         
