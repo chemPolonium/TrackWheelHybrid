@@ -8,12 +8,12 @@ end
 
 function y = sinc(x)
 y = ones(size(x));
-logi = abs(x) > 0.01;
+logi = abs(x) > 1e-3;
 y(logi) = sin(x(logi))./x(logi);
 end
 
 function y = cosc(x)
-y = zeros(size(x))+x;
-logi = abs(x) > 0.01;
+y = zeros(size(x))+x./2;
+logi = abs(x) > 1e-3;
 y(logi) = (1-cos(x(logi)))./x(logi);
 end
