@@ -1,6 +1,5 @@
-function [dxg,dyg] = dynamicTrackForce(vx,vy,omegaz,omegat,xg,yg)
+function [Fx,Fy,Mz,dxg,dyg] = dynamicTrackForce(vx,vy,omegaz,omegat,sigma,r,mu,K,x,y,xg,yg)
 diffx = abs(x(1,2)-x(1));
-diffy = abs(y(2)-y(1));
 
 jx = xg-x;
 jy = yg-y;
@@ -17,17 +16,17 @@ dFy = dF.*sin(delta);
 dML = -dFx.*y;
 dMr = dFy.*x;
 
-duotrapz = @(d) trapz(xl,trapz(yl,d));
+duotrapz = @(d) trapz(x(1,:),trapz(y(:,1),d));
 
 Fx = duotrapz(dFx);
 Fy = duotrapz(dFy);
 ML = duotrapz(dML);
 Mr = duotrapz(dMr);
+Mz = ML+Mr;
 
-dxgl = -vx+yg.*omegaz+gradient(xg,diffx)*omegat;
-dygl = -vy-xg.*omegaz+gradient(yg,diffy)*omegat;
+dxg = -vx+yg.*omegaz+gradient(xg,diffx)*omegat;
+dyg = -vy-xg.*omegaz+gradient(yg,diffx)*omegat;
 
-dxg = [dxgl;dxgr];
-dyg = [dygl;dygr];
+dxg(:,end) = 0;
+dyg(:,end) = 0;
 
-end
