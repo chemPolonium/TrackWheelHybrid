@@ -24,8 +24,8 @@ ML = duotrapz(dML);
 Mr = duotrapz(dMr);
 Mz = ML+Mr;
 
-dxg = -vx+yg.*omegaz+gradient(xg,diffx)*omegat;
-dyg = -vy-xg.*omegaz+gradient(yg,diffx)*omegat;
+dxg = -vx+yg.*omegaz+gradient(xg,diffx).*r.*omegat;
+dyg = -vy-xg.*omegaz+gradient(yg,diffx).*r.*omegat;
 
 dxg(:,end) = 0;
 dyg(:,end) = 0;
