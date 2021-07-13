@@ -29,4 +29,3 @@ dyg = -vy-xg.*omegaz+gradient(yg,diffx).*r.*omegat;
 
 dxg(:,end) = 0;
 dyg(:,end) = 0;
-
