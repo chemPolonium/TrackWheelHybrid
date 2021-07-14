@@ -1,15 +1,21 @@
-vsllist = 1.5:0.3:3;
-vsrlist = 1.5:0.3:3;
-[vsl,vsr] = meshgrid(vsllist,vsrlist);
+% virtual y accelaration
+% virtual z angle velocity
+ayvlist = 2:0.1:2.5;
+avzvlist = 0.1:0.1:0.6;
+[ayv,avzv] = meshgrid(ayvlist,avzvlist);
 
-[vx,vy,omegaz] = deal(zeros(size(vsl)));
+vsl = (sqrt(ayv./avzv)-sqrt(ayv.*avzv))/2;
+vsr = (sqrt(ayv./avzv)+sqrt(ayv.*avzv))/2;
+
+% x velocity, y velocity, z angle velocity
+[vx,vy,avz] = deal(zeros(size(vsl)));
 
 set_param("trkwhlmdldynf/XY Graph","Commented","on");
 for i = 1:numel(vsl)
     if vsl(i) == vsr(i)
         vx(i) = vsl(i);
         vy(i) = 0;
-        omegaz(i) = 0;
+        avz(i) = 0;
         continue
     end
     ivsl = vsl(i);
@@ -21,23 +27,22 @@ for i = 1:numel(vsl)
     iomegaz = out.vel.omegaz.Data(end);
     vx(i) = ivx;
     vy(i) = ivy;
-    omegaz(i) = iomegaz;
+    avz(i) = iomegaz;
 end
 set_param("trkwhlmdldynf/XY Graph","Commented","off");
 
-yc = vx./omegaz;
-yl = (vx-vsl)./omegaz;
-yr = (vx-vsr)./omegaz;
-xc = -vy./omegaz;
+yc = vx./avz;
+yl = (vx-vsl)./avz;
+yr = (vx-vsr)./avz;
+xc = -vy./avz;
 
 figurePosition = [100,500,500,400];
-for varName = ["vx" "vy" "omegaz"]
+for varName = ["xc" "yl" "yr"]
 figure("Position",figurePosition);
-surf(vsl,vsr,eval(varName));
-xlabel("vsl");
-ylabel("vsr");
+surf(ayv,avzv,eval(varName));
+xlabel("ayv");
+ylabel("avzv");
 title(varName);
 exportgraphics(gca,"pic\dynf_"+varName+".png");
 figurePosition(1) = figurePosition(1)+figurePosition(3);
 end
-
