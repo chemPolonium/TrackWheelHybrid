@@ -1,5 +1,5 @@
-vsllist = 1.5:0.3:3;
-vsrlist = 1.5:0.3:3;
+vsllist = linspace(1.5,3,10);
+vsrlist = linspace(1.5,3,10);
 [vsl,vsr] = meshgrid(vsllist,vsrlist);
 
 [vx,vy,omegaz] = deal(zeros(size(vsl)));

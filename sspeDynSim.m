@@ -1,7 +1,7 @@
 % virtual y accelaration
 % virtual z angle velocity
-ayvlist = 2:0.1:2.5;
-avzvlist = 0.1:0.1:0.6;
+ayvlist = linspace(2,2.5,10);
+avzvlist = linspace(0.1,0.6,10);
 [ayv,avzv] = meshgrid(ayvlist,avzvlist);
 
 vsl = (sqrt(ayv./avzv)-sqrt(ayv.*avzv))/2;
@@ -11,6 +11,7 @@ vsr = (sqrt(ayv./avzv)+sqrt(ayv.*avzv))/2;
 [vx,vy,avz] = deal(zeros(size(vsl)));
 
 set_param("trkwhlmdldynf/XY Graph","Commented","on");
+set_param("trkwhlmdldynf/vs source","LabelModeActiveChoice","workSpace");
 for i = 1:numel(vsl)
     if vsl(i) == vsr(i)
         vx(i) = vsl(i);
@@ -35,6 +36,9 @@ yc = vx./avz;
 yl = (vx-vsl)./avz;
 yr = (vx-vsr)./avz;
 xc = -vy./avz;
+
+save("sspeDynSimResult.mat",...
+    "yc","yl","yr","xc","avzv","ayv","vx","vy","avz");
 
 figurePosition = [100,500,500,400];
 for varName = ["xc" "yl" "yr"]
